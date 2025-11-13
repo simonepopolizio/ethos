@@ -7,6 +7,17 @@
 
 This document clarifies backend architecture for each Ethos project within the monorepo. The recommended monorepo structure supports **both frontend and backend** code.
 
+### Architecture Philosophy
+
+**JavaScript/TypeScript First**: Use Node.js for all backends by default to maximize code sharing, type safety, and developer consistency. Only introduce Python when Node.js cannot reasonably handle the workload (heavy ML/NLP).
+
+**Benefits**:
+- ✅ End-to-end TypeScript type safety
+- ✅ Maximum code sharing across frontend/backend
+- ✅ Single language for most of the codebase
+- ✅ Simpler monorepo management
+- ✅ Easier team onboarding
+
 ---
 
 ## Backend Strategy by Project
@@ -161,39 +172,45 @@ packages/
 - Community contributions
 - Blockchain integration (optional)
 
-**Recommended Stack**:
+**Recommended Stack (JavaScript-First)**:
 ```
-Frontend: React Native
-Backend:  Python (FastAPI) for ML + Node.js for API
-Database: PostgreSQL + MongoDB (flexible schema for products)
-ML:       Python (TensorFlow/PyTorch) for OCR
-Blockchain: Ethereum/Polygon (if using)
+Frontend:   React Native
+Backend:    Node.js (Express/Fastify)
+Database:   PostgreSQL + MongoDB (flexible schema)
+OCR:        Cloud API (Google Vision, AWS Textract) OR TensorFlow.js
+Blockchain: Ethereum/Polygon (ethers.js, web3.js)
 ```
 
-**Monorepo Structure**:
+**Monorepo Structure (JavaScript-Only)**:
 ```
 apps/
 └── price-transparency/         # React Native app
     └── src/
 
 services/
-├── price-transparency-api/     # Node.js/Express API
-│   ├── src/
-│   │   ├── routes/
-│   │   ├── services/
-│   │   └── blockchain/         # Web3 integration
-│   └── package.json
-└── price-transparency-ml/      # Python ML service
+└── price-transparency-api/     # Node.js API
     ├── src/
-    │   ├── ocr/                # Image recognition
-    │   └── analysis/           # Price analysis
-    └── pyproject.toml
+    │   ├── routes/
+    │   │   ├── products.ts
+    │   │   ├── scanning.ts
+    │   │   └── analysis.ts
+    │   ├── services/
+    │   │   ├── ocr.ts          # Cloud OCR integration
+    │   │   └── blockchain.ts   # Web3 integration
+    │   └── ml/                 # TensorFlow.js (if self-hosted)
+    └── package.json
 ```
 
-**Why Hybrid Backend**:
-- ✅ Python for ML/AI workloads
-- ✅ Node.js for API (same language as frontend)
-- ✅ Services communicate via REST/gRPC
+**Why Node.js**:
+- ✅ Same language as frontend (code sharing)
+- ✅ Blockchain: ethers.js/web3.js are Node-native
+- ✅ OCR: Use cloud APIs (Google Vision, AWS Textract)
+- ✅ Alternative: TensorFlow.js for self-hosted OCR
+- ✅ Unified codebase with TypeScript types
+
+**Python Alternative** (Only if heavy self-hosted ML needed):
+- Add separate `price-transparency-ml` Python service
+- Use only for custom ML models not available in JS
 
 ---
 
@@ -206,44 +223,47 @@ services/
 - Learning path generation
 - Assessment system
 
-**Recommended Stack**:
+**Recommended Stack (JavaScript-First)**:
 ```
 Frontend: React + Next.js
-Backend:  Python (FastAPI) for ML + Next.js API routes
-Database: PostgreSQL + Vector DB (Pinecone/Weaviate)
-ML:       Python (TensorFlow/PyTorch)
+Backend:  Next.js (full-stack with API routes)
+Database: PostgreSQL + Pinecone/Supabase Vector (managed)
+AI:       OpenAI API / Anthropic API (cloud)
 Cache:    Redis
 ```
 
-**Monorepo Structure**:
+**Monorepo Structure (JavaScript-Only)**:
 ```
 apps/
-└── knowledge-framework/        # Next.js app
+└── knowledge-framework/        # Next.js full-stack app
     ├── src/
-    │   ├── app/                # Frontend
-    │   └── api/                # Light API routes
+    │   ├── app/                # Frontend pages
+    │   ├── api/                # API routes
+    │   │   ├── users/
+    │   │   ├── content/
+    │   │   ├── progress/
+    │   │   └── ai/             # AI integration endpoints
+    │   ├── lib/
+    │   │   ├── db/             # Database client
+    │   │   ├── ai/             # OpenAI/Anthropic client
+    │   │   └── vector/         # Pinecone client
+    │   └── services/
+    │       ├── personalization.ts
+    │       └── recommendations.ts
     └── package.json
-
-services/
-├── knowledge-framework-ml/     # Python ML service
-│   ├── src/
-│   │   ├── personalization/    # Adaptive algorithms
-│   │   ├── recommendations/    # Content recommendations
-│   │   └── assessment/         # Learning assessment
-│   └── pyproject.toml
-└── knowledge-framework-api/    # Python FastAPI (main backend)
-    ├── src/
-    │   ├── routes/
-    │   ├── services/
-    │   └── models/
-    └── pyproject.toml
 ```
 
-**Why Python Backend**:
-- ✅ Better for ML/AI workloads
-- ✅ FastAPI is fast and modern
-- ✅ Type hints + async support
-- ✅ Easy ML model integration
+**Why Node.js (Next.js)**:
+- ✅ Full-stack TypeScript (end-to-end type safety)
+- ✅ AI via cloud APIs (OpenAI, Anthropic, Google AI)
+- ✅ Vector DB: Pinecone/Supabase have JS SDKs
+- ✅ Personalization: Algorithms in TypeScript
+- ✅ Simplified deployment (Vercel)
+- ✅ Share code with frontend
+
+**Python Alternative** (Only if custom ML models needed):
+- Add `knowledge-framework-ml` service for self-hosted models
+- Use only if cloud APIs insufficient or cost-prohibitive
 
 ---
 
@@ -251,114 +271,169 @@ services/
 
 **Backend Needs**:
 - Video transcription pipeline
-- NLP processing (transformers)
-- RAG system (ChromaDB)
+- NLP processing (text analysis)
+- RAG system (semantic search)
 - Semantic search
 - Data analysis API
 - Position mapping
 
-**Recommended Stack**:
+**Recommended Stack (JavaScript-First, Python When Necessary)**:
+
+**Phase 1 - JavaScript-Only (MVP)**:
 ```
 Frontend: React + D3.js/Three.js for visualization
-Backend:  Python (FastAPI) - ML-heavy workload
-Database: PostgreSQL + ChromaDB (vector DB)
-ML:       Python (transformers, LangChain)
-Queue:    Celery + Redis (async processing)
+Backend:  Node.js (Express/Next.js)
+Database: PostgreSQL + Pinecone (managed vector DB)
+AI:       OpenAI API (transcription via Whisper API)
+NLP:      OpenAI/Anthropic for text analysis
+Search:   Pinecone semantic search
 ```
 
-**Monorepo Structure**:
+**Monorepo Structure (JavaScript-Only)**:
 ```
 apps/
-└── ideologybase-web/           # React visualization app
-    └── src/
-
-services/
-├── ideologybase-api/           # FastAPI main backend
-│   ├── src/
-│   │   ├── routes/
-│   │   │   ├── transcriptions.ts
-│   │   │   ├── search.ts
-│   │   │   └── analysis.ts
-│   │   └── services/
-│   └── pyproject.toml
-│
-├── ideologybase-nlp/           # NLP processing pipeline
-│   ├── src/
-│   │   ├── transcribe.py       # Video → text
-│   │   ├── process.py          # Text processing
-│   │   └── classify.py         # Position classification
-│   └── pyproject.toml
-│
-└── ideologybase-rag/           # RAG system
+└── ideologybase/               # Next.js full-stack app
     ├── src/
-    │   ├── ingest.py           # ChromaDB ingestion
-    │   ├── query.py            # Semantic search
-    │   └── embeddings.py       # Vector embeddings
+    │   ├── app/                # Frontend (visualization)
+    │   ├── api/                # API routes
+    │   │   ├── transcribe/     # Whisper API integration
+    │   │   ├── analyze/        # OpenAI text analysis
+    │   │   └── search/         # Pinecone semantic search
+    │   ├── lib/
+    │   │   ├── openai.ts       # OpenAI client
+    │   │   ├── pinecone.ts     # Vector DB client
+    │   │   └── analysis.ts     # Analysis logic
+    │   └── services/
+    │       ├── transcription.ts
+    │       └── rag.ts
+    └── package.json
+```
+
+**Why Start with JavaScript**:
+- ✅ Whisper API for transcription (no Python needed)
+- ✅ OpenAI/Anthropic for NLP analysis
+- ✅ Pinecone for vector search (JS SDK available)
+- ✅ Unified TypeScript codebase
+- ✅ Faster initial development
+- ✅ Lower complexity
+
+**Phase 2 - Add Python (If Needed)**:
+
+**Only add if**:
+- Need self-hosted models (cost savings at scale)
+- Custom fine-tuned models
+- Specialized NLP beyond cloud APIs
+- Advanced transformers use cases
+
+```
+services/
+├── ideologybase-nlp/           # Python NLP service
+│   ├── src/
+│   │   ├── transcribe.py       # Whisper (self-hosted)
+│   │   ├── embeddings.py       # Custom embeddings
+│   │   └── classify.py         # Custom classifiers
+│   └── pyproject.toml
+│
+└── ideologybase-rag/           # Python RAG (ChromaDB)
+    ├── src/
+    │   ├── ingest.py
+    │   └── query.py
     └── pyproject.toml
 ```
 
-**Why All Python**:
-- ✅ ML/NLP heavy workload
-- ✅ Best ecosystem for transformers
-- ✅ ChromaDB is Python-native
-- ✅ LangChain integration
+**Migration Path**:
+1. Start with cloud APIs (JavaScript-only)
+2. Monitor costs and performance
+3. Add Python services only when:
+   - API costs become significant (>$500/month)
+   - Need custom models
+   - Performance requires optimization
 
 ---
 
 ## Complete Monorepo Structure (Frontend + Backend)
 
+### JavaScript-First Approach
+
 ```
 ethos/
-├── apps/                           # Frontend + Full-stack apps
-│   ├── ethosmesh/                 # Next.js (frontend + API routes)
-│   ├── ethostask/                 # Next.js + tRPC (full-stack)
-│   ├── new-calendar-web/          # React (frontend only)
+├── apps/                           # Frontend + Full-stack apps (JavaScript/TypeScript)
+│   ├── ethosmesh/                 # Next.js full-stack (frontend + API routes)
+│   ├── ethostask/                 # Next.js + tRPC full-stack
+│   ├── new-calendar-web/          # React frontend
 │   ├── new-calendar-mobile/       # React Native
 │   ├── price-transparency/        # React Native
-│   ├── knowledge-framework/       # Next.js (frontend + light API)
-│   └── ideologybase-web/          # React (visualization)
+│   ├── knowledge-framework/       # Next.js full-stack (frontend + API routes)
+│   └── ideologybase/              # Next.js full-stack (frontend + API routes)
 │
-├── services/                       # Backend microservices
-│   ├── new-calendar-api/          # Node.js Express (shared API)
-│   ├── price-transparency-api/    # Node.js Express
-│   ├── price-transparency-ml/     # Python ML service
-│   ├── knowledge-framework-api/   # Python FastAPI
-│   ├── knowledge-framework-ml/    # Python ML service
-│   ├── ideologybase-api/          # Python FastAPI (main API)
-│   ├── ideologybase-nlp/          # Python NLP pipeline
-│   └── ideologybase-rag/          # Python RAG system
+├── services/                       # Backend services (Node.js by default)
+│   ├── new-calendar-api/          # Node.js Express (shared web + mobile API)
+│   └── price-transparency-api/    # Node.js Express (API + OCR integration)
 │
-├── packages/                       # Shared libraries (frontend + backend)
+├── services-python/                # Python services (only when necessary)
+│   └── [Added only if needed for custom ML models]
+│
+├── packages/                       # Shared libraries (isomorphic JavaScript/TypeScript)
 │   ├── shared-ui/                 # React components
-│   ├── shared-utils/              # TS utilities (isomorphic)
-│   ├── shared-types/              # TypeScript types
+│   ├── shared-utils/              # TS utilities (work in browser + Node.js)
+│   ├── shared-types/              # TypeScript types (frontend + backend)
 │   ├── design-system/             # Design tokens
 │   ├── api-client/                # API client library
 │   ├── calendar-core/             # Business logic
-│   └── config/                    # Shared configs
+│   └── config/                    # Shared configs (ESLint, TS, etc.)
 │
 ├── infrastructure/
-│   ├── docker/                    # Dockerfiles for services
-│   ├── k8s/                       # Kubernetes manifests
+│   ├── docker/                    # Dockerfiles (if needed for Python)
 │   └── terraform/                 # Infrastructure as Code
 │
 └── tools/
-    └── scripts/
+    └── scripts/                   # Build/deploy scripts
 ```
+
+### Key Benefits of This Structure
+
+- ✅ **95% JavaScript/TypeScript**: Unified language across stack
+- ✅ **End-to-end type safety**: Shared types from DB to UI
+- ✅ **Maximum code reuse**: Same utilities, validators, types everywhere
+- ✅ **Simpler monorepo**: No polyglot complexity initially
+- ✅ **Easy to extend**: Add Python later if truly needed
 
 ---
 
-## Backend Technology Recommendations
+## Backend Technology Recommendations (JavaScript-First)
 
-### When to Use Each Backend
+### Default: Use JavaScript/TypeScript
 
-| Backend Tech | Use Case | Projects |
-|--------------|----------|----------|
-| **Next.js API Routes** | Simple CRUD, full-stack apps | EthosMesh, EthosTask |
-| **tRPC** | Type-safe APIs, monorepo apps | EthosTask |
-| **Node.js Express/Fastify** | Separate API for mobile, REST APIs | New Calendar, Price Transparency |
-| **Python FastAPI** | ML/AI workloads, NLP, data science | Knowledge Framework, IdeologyBase |
-| **GraphQL** | Complex data relationships, flexible queries | Optional for any project |
+| Backend Tech | When to Use | Projects |
+|--------------|-------------|----------|
+| **Next.js API Routes** | Full-stack apps, co-located with frontend | EthosMesh, EthosTask, Knowledge Framework, IdeologyBase |
+| **tRPC** | Type-safe APIs within monorepo | EthosTask (recommended) |
+| **Node.js Express/Fastify** | Separate API for mobile apps | New Calendar, Price Transparency |
+| **Cloud AI APIs** | ML/AI via OpenAI/Anthropic/Google | Knowledge Framework, IdeologyBase |
+
+### Only Add Python When
+
+| Scenario | Solution |
+|----------|----------|
+| **Self-hosted ML models needed** | Add Python service with TensorFlow/PyTorch |
+| **Custom fine-tuned models** | Add Python NLP service |
+| **Cloud API costs >$500/month** | Migrate to self-hosted Python models |
+| **Specialized transformers** | Add Python service with HuggingFace |
+
+### Technology Decision Tree
+
+```
+Does the project need ML/AI?
+├─ NO → Node.js (Next.js/Express)
+│   └─ Examples: EthosMesh, EthosTask, New Calendar
+│
+└─ YES → Can cloud APIs handle it? (OpenAI, Anthropic, etc.)
+    ├─ YES → Node.js + Cloud APIs
+    │   └─ Examples: Knowledge Framework, IdeologyBase (initially)
+    │
+    └─ NO (need custom models) → Add Python service
+        └─ Only when absolutely necessary
+```
 
 ---
 
@@ -701,22 +776,39 @@ docker-compose -f infrastructure/docker/docker-compose.yml up -d
 
 ### Does the Monorepo Handle Backend? ✅ YES
 
-The recommended monorepo structure **fully supports**:
+The recommended monorepo structure **fully supports frontend and backend** with a **JavaScript-first approach**:
 
-- ✅ **Next.js full-stack apps** (frontend + API routes)
-- ✅ **Separate Node.js APIs** (Express/Fastify)
-- ✅ **Python backend services** (FastAPI for ML/AI)
-- ✅ **Shared code** between frontend and backend
-- ✅ **Type safety** across the stack (TypeScript + Python type hints)
-- ✅ **Unified development** experience (one repo, one command)
-- ✅ **Independent deployment** (each service can deploy separately)
+- ✅ **Next.js full-stack apps** (frontend + API routes in one app)
+- ✅ **Separate Node.js APIs** (Express/Fastify for mobile)
+- ✅ **End-to-end TypeScript** (shared types from DB to UI)
+- ✅ **Cloud AI APIs** (OpenAI, Anthropic for ML/AI needs)
+- ✅ **Python only when necessary** (custom ML models)
+- ✅ **Maximum code sharing** (utilities, validators, types)
+- ✅ **Unified development** (one language, one repo, one command)
+- ✅ **Independent deployment** (each service deploys separately)
 
-### Recommended Backend Architecture by Complexity
+### Recommended Backend Architecture (JavaScript-First)
 
-**Simple Projects** → Next.js API Routes (EthosMesh, EthosTask)
-**Mobile + Web** → Separate Express/Fastify API (New Calendar)
-**ML/AI Heavy** → Python FastAPI + Node.js (Knowledge Framework, IdeologyBase)
-**Hybrid** → Mix of all above (Price Transparency)
+**All Projects Start With**: JavaScript/TypeScript (Next.js or Express)
+
+| Project | Backend Solution | Why |
+|---------|-----------------|-----|
+| **EthosMesh** | Next.js API Routes | Full-stack, GIS in Node.js |
+| **EthosTask** | Next.js + tRPC | Type-safe full-stack |
+| **New Calendar** | Express API | Shared by web + mobile |
+| **Price Transparency** | Express + Cloud OCR | Blockchain (web3.js) + AI APIs |
+| **Knowledge Framework** | Next.js + OpenAI API | Cloud AI, no Python needed |
+| **IdeologyBase** | Next.js + Whisper/Pinecone | Cloud AI initially, Python later if needed |
+
+### When to Add Python
+
+**Only add Python services when**:
+1. Cloud API costs exceed $500/month
+2. Custom ML models required (not available via API)
+3. Specialized NLP beyond cloud offerings
+4. Performance optimization needs self-hosted models
+
+**Start JavaScript-first, add Python incrementally only when proven necessary.**
 
 ---
 
