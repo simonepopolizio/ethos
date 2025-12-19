@@ -32,7 +32,7 @@ EthosMesh lets communities map their own resources, assess real potential, and p
 - What data matters? Who owns it? How do you get it?
 - How do you prevent capture by narrow local interests?
 
-[Read more →](projects/ethosmesh.md)
+[Repository →](https://github.com/simonepopolizio/ethosmesh)
 
 </details>
 
@@ -52,7 +52,7 @@ Some milestones: 100% material recycling with cities as our only "mines". Climat
 - How do you prevent it from becoming another greenwashing exercise?
 - How do you incentivize collaboration over competition for visibility?
 
-[Read more →](projects/ethostask.md)
+[Repository →](https://github.com/simonepopolizio/ethostask)
 
 </details>
 
@@ -70,7 +70,7 @@ EthosLens works through collective intelligence: the factory worker knows produc
 - How do you make it usable for average consumers without overwhelming them?
 - How do you handle "everyone takes a little" when no single actor is the villain?
 
-[Read more →](projects/ethoslens.md)
+[Repository →](https://github.com/simonepopolizio/ethoslens)
 
 </details>
 
@@ -90,7 +90,7 @@ The deeper problems: tribalism turns you into "one of them" before you open your
 - How do you prevent it from becoming another polarization tool?
 - How do you make accountability stick when people are used to forgetting?
 
-[Read more →](projects/ideologybase.md)
+[Repository →](https://github.com/simonepopolizio/ideologybase)
 
 </details>
 
@@ -108,7 +108,7 @@ EthosArk preserves cognitive domains at risk of extinction through economic obso
 - How do you preserve processes, not just knowledge?
 - How do you motivate people to learn things that aren't "useful"?
 
-[Read more →](projects/ethosark.md)
+[Repository →](https://github.com/simonepopolizio/ethosark)
 
 </details>
 
@@ -126,7 +126,7 @@ The deeper question: every community has traditions from ancestors, holidays fro
 - How do you make new rituals feel meaningful rather than artificial?
 - How do you get people to invest in something they didn't inherit?
 
-[Read more →](projects/ethoscalendar.md)
+[Repository →](https://github.com/simonepopolizio/ethoscalendar)
 
 </details>
 
